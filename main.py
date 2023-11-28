@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Body, Query, Depends, HTTPException, status
+from fastapi import FastAPI, Body, Query
 import mysql.connector
 from fastapi import FastAPI
 import mysql.connector
@@ -8,10 +8,6 @@ from io import BytesIO
 from pydantic import BaseModel
 import base64
 from fastapi.middleware.cors import CORSMiddleware
-
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-import psycopg2
-from passlib.context import CryptContext
 # Configura la conexión a la base de datos
 db_connection = mysql.connector.connect(
     host="18.118.30.90",
@@ -22,25 +18,6 @@ db_connection = mysql.connector.connect(
 )
 
 app =FastAPI()
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-# Conexión a la base de datos PostgreSQL
-def get_db():
-    try:
-        connection = psycopg2.connect(
-            user="dayler",
-            password="12345678",
-            host="postgresql-155872-0.cloudclusters.net",
-            port="12836",
-            database="iglesia"
-        )
-        return connection
-    except Exception as e:
-        print(f"Error connecting to the database: {e}")
-        raise HTTPException(status_code=500, detail="Internal Server Error")
-
-
 origins = ["*"]
 app.add_middleware(
     CORSMiddleware,
@@ -64,10 +41,6 @@ movies = [
         'category': 'Acción'    
     } 
 ]
-
-class DatosLogin(BaseModel):
-    email: str = None
-    password: str = None
 
 @app.get('/')
 def message():
@@ -353,40 +326,3 @@ async def endpoint_obtener_grafico_top10_asistencias_actividades(datos_actividad
     img_base64 = generar_grafico_top10_asistencias_actividades(top10_asistencias_df)
 
     return {"imagen_base64": img_base64}
-
-def get_user(cursor, email: str):
-    cursor.execute("SELECT id, name, email, password FROM users WHERE email = %s", (email,))
-    return cursor.fetchone()
-
-def create_user(cursor, name: str, email: str, password: str):
-    cursor.execute("INSERT INTO users (name, email, password) VALUES (%s, %s, %s)", (name, email, password))
-    return {"status": "Success","message": "usuario ya creado","data": {"id":1,"name": name, "email": email}} 
-
-# Rutas de API
-@app.post("/register")
-def register_user(name: str, email: str, password: str, db=Depends(get_db)):
-    cursor = db.cursor()
-    try:
-        user = get_user(cursor, email=email)
-        if user:
-            return {"status": "Error","message": "Error","data": false}
-        return create_user(cursor, name=name, email=email, password=password)
-    except Exception as e:
-            return {"status": "Error","message": "Error","data": false}
-    finally:
-        cursor.close()
-        db.commit()
-
-@app.post("/login")
-def login_user(datos_login: DatosLogin,db=Depends(get_db)):
-    
-    cursor = db.cursor()
-    try:
-        user = get_user(cursor, email=datos_login.email)
-        if not user or datos_login.password != user[3]:  # Assuming the password column is at index 3
-            return {"status": "Error","message": "Error","data": false}
-        return {"status": "Success","message": "Logeado correctamente","data": user}
-    except Exception as e:
-        return {"message": "Error"}
-    finally:
-        cursor.close()
