@@ -7,20 +7,24 @@ import matplotlib.pyplot as plt
 from io import BytesIO
 from pydantic import BaseModel
 import base64
+
 from fastapi.middleware.cors import CORSMiddleware
 
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 import psycopg2
+from passlib.context import CryptContext
 # Configura la conexión a la base de datos
 db_connection = mysql.connector.connect(
-    host="18.118.30.90",
-    user="grupo11",
-    password="PaPo*9821",
-    port="3306",
-    database="db_iglesia"
+    host="mysql-159795-0.cloudclusters.net",
+    user="admin",
+    password="bdzi0aGZ",
+    port="16487",
+    database="iglesia"
 )
 
 app =FastAPI()
 
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # Conexión a la base de datos PostgreSQL
 def get_db():
@@ -28,9 +32,9 @@ def get_db():
         connection = psycopg2.connect(
             user="dayler",
             password="12345678",
-            host="postgresql-155872-0.cloudclusters.net",
-            port="12836",
-            database="iglesia"
+            host="postgresql-159819-0.cloudclusters.net",
+            port="12417",
+            database="db_iglesia"
         )
         return connection
     except Exception as e:
@@ -99,11 +103,11 @@ class DatosFecha(BaseModel):
 def obtener_datos_desde_mysql(fecha_inicio: str, fecha_fin: str):
     # Configura la conexión a la base de datos
     conexion = mysql.connector.connect(
-        host="18.118.30.90",
-    user="grupo11",
-    password="PaPo*9821",
-    port="3306",
-    database="db_iglesia"
+        host="mysql-159795-0.cloudclusters.net",
+    user="admin",
+    password="bdzi0aGZ",
+    port="16487",
+    database="iglesia"
     )
 
     # Consulta SQL para obtener datos de la tabla de actividades entre las fechas especificadas
@@ -143,11 +147,11 @@ async def obtener_grafica(datos_fecha: DatosFecha):
 
 def obtener_datos_desde_mysql_g2(fecha_inicio: str, fecha_fin: str):
     conexion = mysql.connector.connect(
-        host="18.118.30.90",
-    user="grupo11",
-    password="PaPo*9821",
-    port="3306",
-    database="db_iglesia"
+        host="mysql-159795-0.cloudclusters.net",
+    user="admin",
+    password="bdzi0aGZ",
+    port="16487",
+    database="iglesia"
     )
 
     consulta_sql = f"""
@@ -186,11 +190,11 @@ async def endpoint_obtener_grafica_promedio_ingresos(datos_fecha: DatosFecha):
 
 def obtener_datos_asistencias(actividad_id: int):
     conexion = mysql.connector.connect(
-        host="18.118.30.90",
-    user="grupo11",
-    password="PaPo*9821",
-    port="3306",
-    database="db_iglesia"
+        host="mysql-159795-0.cloudclusters.net",
+    user="admin",
+    password="bdzi0aGZ",
+    port="16487",
+    database="iglesia"
     )
 
     consulta_sql = f"""
@@ -207,11 +211,11 @@ def obtener_datos_asistencias(actividad_id: int):
 
 def obtener_datos_cantidad_personas():
     conexion = mysql.connector.connect(
-        host="18.118.30.90",
-    user="grupo11",
-    password="PaPo*9821",
-    port="3306",
-    database="db_iglesia"
+        host="mysql-159795-0.cloudclusters.net",
+    user="admin",
+    password="bdzi0aGZ",
+    port="16487",
+    database="iglesia"
     )
 
     consulta_sql = f"""
@@ -255,11 +259,11 @@ async def endpoint_obtener_grafica_porcentaje_asistencias(datos_actividad: Datos
 def obtener_datos_ingresos(actividad_id: int):
  
     conexion = mysql.connector.connect(
-        host="18.118.30.90",
-    user="grupo11",
-    password="PaPo*9821",
-    port="3306",
-    database="db_iglesia"
+        host="mysql-159795-0.cloudclusters.net",
+    user="admin",
+    password="bdzi0aGZ",
+    port="16487",
+    database="iglesia"
     )
 
     consulta_sql = f"""
@@ -302,11 +306,11 @@ class DatosActividad(BaseModel):
 
 def obtener_datos_top10_asistencias_actividades(datos_actividad: DatosActividad):
     conexion = mysql.connector.connect(
-        host="18.118.30.90",
-    user="grupo11",
-    password="PaPo*9821",
-    port="3306",
-    database="db_iglesia"
+        host="mysql-159795-0.cloudclusters.net",
+    user="admin",
+    password="bdzi0aGZ",
+    port="16487",
+    database="iglesia"
     )
 
     # Agregar condiciones de fecha si están presentes
@@ -352,11 +356,11 @@ async def endpoint_obtener_grafico_top10_asistencias_actividades(datos_actividad
     return {"imagen_base64": img_base64}
 
 def get_user(cursor, email: str):
-    cursor.execute("SELECT id, name, email, password FROM users WHERE email = %s", (email,))
+    cursor.execute("SELECT id, name, email, password FROM usuarios WHERE email = %s", (email,))
     return cursor.fetchone()
 
 def create_user(cursor, name: str, email: str, password: str):
-    cursor.execute("INSERT INTO users (name, email, password) VALUES (%s, %s, %s)", (name, email, password))
+    cursor.execute("INSERT INTO usuarios (name, email, password) VALUES (%s, %s, %s)", (name, email, password))
     return {"status": "Success","message": "usuario ya creado","data": {"id":1,"name": name, "email": email}} 
 
 # Rutas de API
